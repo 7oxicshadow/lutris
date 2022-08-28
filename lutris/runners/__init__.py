@@ -2,46 +2,13 @@
 from collections import defaultdict
 
 __all__ = [
-    # Native
-    "linux",
-    "steam",
-    "web",
-    "flatpak",
-    # Microsoft based
-    "wine",
-    "dosbox",
-    # Multi-system
-    "easyrpg",
-    "mame",
-    "mednafen",
-    "scummvm",
-    "residualvm",
-    "libretro",
-    # Commodore
-    "fsuae",
-    "vice",
-    # Atari
-    "atari800",
-    "hatari",
-    # Nintendo
-    "snes9x",
-    "mupen64plus",
-    "dolphin",
-    "ryujinx",
-    "yuzu",
-    # Sony
-    "pcsx2",
-    "rpcs3",
-    # Sega
-    "osmose",
-    "reicast",
-    "redream",
-    # Fantasy consoles
-    "pico8",
-    # Misc legacy systems
-    "jzintv",
-    "o2em",
-    "zdoom",
+    # Custom
+    "_3do", "_3ds", "_amiga_500", "_amiga_cd32", "_amstrad_cpc464", "_arcade", "_arcade_vm", "_c64", "_laserdisc", "_neo_geo",
+    "_nintendo_n64", "_nintendo_64dd", "_nintendo_nes", "_pc", "_playstation", "_ps3", "_psp", "_saturn", "_scummvm", "_sega_32x",
+    "_sega_cd", "_sega_mastersystem", "_sega_megadrive", "_sinclair_zxspectrum", "_snes", "_switch", "_wii_gc",
+    "_wii_u", "_xbox", "_playstation_2", "_triforce", "_gb_gba", "_dreamcast", "_model2", "_model3", "_nds", 
+    "_xbox360", "_nintendo_virtualboy", "_sega_chihiro", "_dosbox", "_atomiswave_naomi","_hand_held","_jaguar","_philips_cd_i",
+    "_amiga_cdtv","_pc_egs","_pc_steam", "_sega_gamegear"
 ]
 ADDON_RUNNERS = {}
 RUNNER_PLATFORMS = {}

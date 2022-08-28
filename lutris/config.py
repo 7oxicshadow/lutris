@@ -10,6 +10,9 @@ from lutris.util.log import logger
 from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 
+# @7oxicshadow import application so we can access the app variable
+import lutris.gui.application
+
 
 def make_game_config_id(game_slug):
     """Return an unique config id to avoid clashes between multiple games"""
@@ -229,6 +232,9 @@ class LutrisConfig:
         logger.debug("Saving %s config to %s", self, config_path)
         write_yaml_to_file(config, config_path)
         self.initialize_config()
+        
+        # @7oxicshadow update the main window text box with the current screen mode
+        lutris.gui.application.app.window.update_screen_mode()
 
     def get_defaults(self, options_type):
         """Return a dict of options' default value."""

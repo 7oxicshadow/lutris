@@ -1,4 +1,4 @@
-# pylint: disable=wrong-import-position
+# pylint: disable=no-member,wrong-import-position
 #
 # Copyright (C) 2022 Mathieu Comandon <strider@strycore.com>
 #
@@ -897,3 +897,13 @@ Also, check that the version specified is in the correct format.
 
     def has_tray_icon(self):
         return self.tray and self.tray.is_visible()
+
+            
+# @7oxicshadow moved here from main for accessability
+app = Application()  # pylint: disable=invalid-name
+
+
+# @7oxicshadow Created as a link from the main lutris file to access the app.run function
+def apprun(args):
+
+    return app.run(args)

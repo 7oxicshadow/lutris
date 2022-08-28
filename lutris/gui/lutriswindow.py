@@ -31,6 +31,10 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.system import update_desktop_icons
 
+# @7oxicshadow - import yaml read
+from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
+# @7oxicshadow - import subprocess for rom updater
+import subprocess
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
 class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-methods
@@ -53,6 +57,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
+    # @7oxicshadow - access the header_bar
+    header_bar = GtkTemplate.Child()
+    # @7oxicshadow - access the header_textbox
+    header_textbox = GtkTemplate.Child()
+    # @7oxicshadow - access the header_dis textbox
+    header_textbox_dis = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -110,6 +120,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
 
+        # @7oxicshadow - Set the titlebar
+        self.update_screen_mode()
+
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
@@ -138,6 +151,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 accel="<Primary>i",
             ),
             "toggle-viewtype": Action(self.on_toggle_viewtype),
+            # @7oxicshadow - Add toggle settings hook for gui
+            "toggle-settings": Action(self.on_toggle_settings),
+            # @7oxicshadow - Add toggle rom update hook for gui
+            "toggle-rom-update": Action(self.on_toggle_rom_updater),
             "icon-type": Action(self.on_icontype_state_change, type="s", default=self.icon_type),
             "view-sorting": Action(self.on_view_sorting_state_change, type="s", default=self.view_sorting),
             "view-sorting-ascending": Action(
@@ -644,7 +661,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         size = widget.get_size()
         if not self.maximized:
             self.window_size = size
-        self.search_entry.set_size_request(min(max(50, size[0] - 470), 800), -1)
+        #@7oxicshadow disable
+        #self.search_entry.set_size_request(min(max(50, size[0] - 470), 800), -1)
 
     def on_window_delete(self, *_args):
         if self.application.running_games.get_n_items():
@@ -702,6 +720,50 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
             self.view.grab_focus()
 
+    #@7oxicshadow - allow gtk entry for window mode to be clickable
+    @GtkTemplate.Callback
+    def ui_fs_w_gtkentry_pressed(self, action, value):
+       
+        yamlout = read_yaml_from_file(os.path.join(settings.CONFIG_DIR, "system.yml"))
+
+        if 'system' in yamlout:
+            if 'global_fullscreen' in yamlout['system']:
+                string = yamlout['system']['global_fullscreen']
+
+        if 'fullscreen' in string:
+            yamlout['system']['global_fullscreen'] = 'windowed'
+        elif 'windowed' in string:
+            yamlout['system']['global_fullscreen'] = 'fullscreen'
+        else:
+            print("Unrecognised config setting. Ignoring")
+            return
+
+        write_yaml_to_file(yamlout, os.path.join(settings.CONFIG_DIR, "system.yml"))
+
+        self.update_screen_mode()
+
+    #@7oxicshadow - allow gtk entry for window mode to be clickable
+    @GtkTemplate.Callback
+    def ui_dis_gtkentry_pressed(self, action, value):
+       
+        yamlout = read_yaml_from_file(os.path.join(settings.CONFIG_DIR, "system.yml"))
+
+        if 'system' in yamlout:
+            if 'update_discord' in yamlout['system']:
+                string = yamlout['system']['update_discord']
+
+        if string == 'discord':
+            yamlout['system']['update_discord'] = 'nodiscord'
+        elif string == 'nodiscord':
+            yamlout['system']['update_discord'] = 'discord'
+        else:
+            print("Unrecognised config setting. Ignoring")
+            return
+
+        write_yaml_to_file(yamlout, os.path.join(settings.CONFIG_DIR, "system.yml"))
+
+        self.update_screen_mode()
+
     @GtkTemplate.Callback
     def on_about_clicked(self, *_args):
         """Open the about dialog."""
@@ -726,6 +788,43 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         settings.write_setting("view_type", view_type)
         self.redraw_view()
         self._bind_zoom_adjustment()
+
+    # @7oxicshadow - Show settings dialog
+    def on_toggle_settings(self, *args):
+        SystemConfigDialog(parent=self)
+
+    # @7oxicshadow - Run rom updater
+    def on_toggle_rom_updater(self, *args):
+
+        if self.application.running_games.get_n_items() == 0:
+
+            yamlout = read_yaml_from_file(os.path.join(settings.CONFIG_DIR, "system.yml"))
+
+            if 'system' in yamlout:
+                if 'rom_update_script_path' in yamlout['system']:
+                    string = yamlout['system']['rom_update_script_path']
+
+            if string:
+
+                dlg = dialogs.QuestionDialog(
+                    {
+                        "question": ("Are you sure you want to update.\nIt could take 30 secs or more to complete ?"),
+                        "title": "Update Database?",
+                    }
+                )
+                if dlg.result == Gtk.ResponseType.YES:
+
+                    p = subprocess.Popen(string, shell=True)
+                    p.communicate()
+
+                    if p.returncode != 0:
+                        print("Updater script reported failure")
+                    else:
+                        print("Updating the library - This could take a while")
+                        self.on_game_collection_changed(None)
+            else:
+                print("Unable to run updater script. Has it been set in options?")
+                dialogs.ErrorDialog("Unable to run updater script. Has it been set in options?")
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
@@ -841,6 +940,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return True
 
     def on_game_activated(self, view, game_id):
+
+        """ @7oxicshadow - Do not allow multiple launches"""
+        if self.application.running_games.get_n_items():
+            logger.info("Running New Process Halted. Detected running apps!")
+            dialogs.ErrorDialog(
+                "Running New Process Halted. Detected running apps!"
+            )
+            return
+
         """Handles view activations (double click, enter press)"""
         if self.service:
             logger.debug("Looking up %s game %s", self.service.id, game_id)
@@ -865,3 +973,20 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 game.emit("game-launch")
             else:
                 game.emit("game-install")
+
+    # @7oxicshadow - function
+    def update_screen_mode(self):
+        string = ''
+        yamlout = read_yaml_from_file(os.path.join(settings.CONFIG_DIR, "system.yml"))
+
+        if 'system' in yamlout:
+            if 'global_fullscreen' in yamlout['system']:
+                string = yamlout['system']['global_fullscreen']
+
+        self.header_textbox.set_text( string.title() )
+        
+        if 'system' in yamlout:
+            if 'update_discord' in yamlout['system']:
+                string = yamlout['system']['update_discord']
+
+        self.header_textbox_dis.set_text( string.title() )

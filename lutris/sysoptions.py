@@ -164,6 +164,23 @@ def get_vk_icd_choices():
         choices.append(("AMDGPU-PRO Proprietary", amdvlkpro_files))
     return choices
 
+# @7oxicshadow - create screen options
+def get_fwa_list():
+    choices = [
+        ('Fullscreen', 'fullscreen'),
+        ('Windowed', 'windowed'),
+    ]
+
+    return choices
+
+# @7oxicshadow - create screen options
+def get_dis_list():
+    choices = [
+        ('Discord', 'discord'),
+        ('No Discord', 'nodiscord'),
+    ]
+
+    return choices
 
 system_options = [  # pylint: disable=invalid-name
     {
@@ -173,6 +190,35 @@ system_options = [  # pylint: disable=invalid-name
         "default": os.path.expanduser("~/Games"),
         "scope": ["runner", "system"],
         "help": _("The default folder where you install your games.")
+    },
+    # @7oxicshadow add rom update script location
+    {
+        "option": "rom_update_script_path",
+        "type": "file",
+        "label": "Rom update script",
+        "default": "",
+        "scope": ["runner", "system"],
+        "help": "Location of the Rom updater script."
+    },
+    # @7oxicshadow add global_fullscreen option
+    {
+        'option': 'global_fullscreen',
+        'type': 'choice',
+        'label': 'Full/Windowed',
+        'choices': get_fwa_list,
+        'default': 'windowed',
+        'help': ("Full is Force Fullscreen\n "
+                 "Windowed is Force Windowed\n ")
+    },
+    # @7oxicshadow add update_discord option
+    {
+        'option': 'update_discord',
+        'type': 'choice',
+        'label': '7oxicshadow - Update Discord',
+        'choices': get_dis_list,
+        'default': 'discord',
+        'help': ("Discord - Update discord\n "
+                 "No Discord - Don't update discord\n ")
     },
     {
         "option":

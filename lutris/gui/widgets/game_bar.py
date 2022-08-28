@@ -114,7 +114,7 @@ class GameBar(Gtk.Box):
         """Return the label with the game's title"""
         title_label = Gtk.Label(visible=True)
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
-        title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game.name))
+        title_label.set_markup("<span font_desc='16'>Game : <b>%s</b></span>" % gtk_safe(self.game.name)) # @7oxicshadow - Add text
         return title_label
 
     def get_runner_button(self):
@@ -143,7 +143,7 @@ class GameBar(Gtk.Box):
 
     def get_platform_label(self):
         platform_label = Gtk.Label(visible=True)
-        platform_label.set_size_request(120, -1)
+        platform_label.set_size_request(300, -1) #@7oxicshadow - increase box size
         platform_label.set_alignment(0, 0.5)
         platform = gtk_safe(self.game.platform)
         platform_label.set_tooltip_markup(platform)

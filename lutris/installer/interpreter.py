@@ -14,7 +14,7 @@ from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.legacy import get_game_launcher
-from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
+from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner #, steam, wine @7oxicshadow disabled
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -372,7 +372,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         else:
             install_complete_text = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
             self.parent.set_status(install_complete_text)
-        download_lutris_media(self.installer.game_slug)
+        #download_lutris_media(self.installer.game_slug) #@7oxicshadow - disable fetch banner from net
         self.parent.on_install_finished(game_id)
 
     def cleanup(self):

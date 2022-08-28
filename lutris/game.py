@@ -21,7 +21,7 @@ from lutris.database import sql
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
-from lutris.runners import InvalidRunner, import_runner, wine
+from lutris.runners import InvalidRunner, import_runner #, wine @7oxicshadow disabled
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
@@ -34,6 +34,8 @@ from lutris.util.process import Process
 from lutris.util.savesync import sync_saves
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
+
+from playsound import playsound
 
 HEARTBEAT_DELAY = 2000
 
@@ -441,6 +443,22 @@ class Game(GObject.Object):
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:  # if user cancelled- not an error
             return False
+
+        # @7oxicshadow append the window state
+        if self.runner.system_config.get('global_fullscreen') == "fullscreen":
+            gameplay_info['command'].append('fullscreen')
+        else:
+            gameplay_info['command'].append('window')
+
+        # @7oxicshadow append stub for launcher (gelide etc...) *TO BE REMOVED*
+        gameplay_info['command'].append('STUB1')
+
+        # @7oxicshadow append the game name to the list of arguments for discord
+        if self.runner.system_config.get('update_discord') == "discord":
+            gameplay_info['command'].append(self.name)
+        else:
+            gameplay_info['command'].append('DIS_DISABLE')
+
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
         self.game_runtime_config = {
@@ -496,6 +514,15 @@ class Game(GObject.Object):
 
     @watch_lutris_errors(game_stop_result=False)
     def launch(self):
+
+        """ @7oxicshadow - Play a sound file as an indication to the user"""
+        sfile = '/home/toxicshadow/custom_sounds/unconvinced-569.mp3'
+        if os.path.isfile(sfile):
+            playsound(sfile)
+        else:
+            print("\n\n***** LUTRIS: Unable to locate launch sound file *****")
+            print("***** " + sfile + " *****" + "\n\n")
+
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
             logger.error("Game is not launchable")

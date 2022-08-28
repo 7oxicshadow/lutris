@@ -251,7 +251,7 @@ class LutrisSidebar(Gtk.ListBox):
 
     def __init__(self, application, selected=None):
         super().__init__()
-        self.set_size_request(200, -1)
+        self.set_size_request(250, -1) #@7oxicshadow change width
         self.application = application
         self.get_style_context().add_class("sidebar")
         self.installed_runners = []
@@ -289,13 +289,13 @@ class LutrisSidebar(Gtk.ListBox):
 
     def get_sidebar_icon(self, icon_name):
         name = icon_name if has_stock_icon(icon_name) else "package-x-generic-symbolic"
-        icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU)
+        icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.DND) # @7oxicshadow - change icon to DND
 
         # We can wind up with an icon of the wrong size, if that's what is
         # available. So we'll fix that.
-        icon_size = Gtk.IconSize.lookup(Gtk.IconSize.MENU)
-        if icon_size[0]:
-            icon.set_pixel_size(icon_size[2])
+        #icon_size = Gtk.IconSize.lookup(Gtk.IconSize.DND) # @7oxicshadow - change icon to DND
+        #if icon_size[0]:
+        #    icon.set_pixel_size(icon_size[2])
 
         return icon
 
@@ -307,46 +307,58 @@ class LutrisSidebar(Gtk.ListBox):
         """
         self.active_platforms = games_db.get_used_platforms()
         self.runners = sorted(runners.__all__)
-        self.platforms = sorted(runners.RUNNER_PLATFORMS)
-        self.categories = categories_db.get_categories()
+        self.runnershn = [] #@7oxicshadow
+        self.platforms = [] #sorted(platforms.__all__) @7oxicshadow disable
+        self.categories = [] #categories_db.get_categories() @7oxicshadow disable
+
+        #@7oxicshadow - Get the human names in a list
+        for runner in self.runners:
+            self.runnershn.append(runners.import_runner(runner)().human_name)
+
+        #@7oxicshadow - Sort the runners based on the human name
+        self.runnershn, self.runners = (list(x) for x in zip(*sorted(zip(self.runnershn, self.runners), key=lambda pair: pair[0])))
 
         self.add(
             SidebarRow(
                 "all",
                 "category",
-                _("Games"),
-                Gtk.Image.new_from_icon_name("applications-games-symbolic", Gtk.IconSize.MENU)
+                _("All Games"),    #@7oxicshadow - Rename to All Games
+                Gtk.Image.new_from_icon_name("applications-games-symbolic", Gtk.IconSize.DND ) # @7oxicshadow - set icon size
             )
         )
 
-        self.add(
-            SidebarRow(
-                "recent",
-                "dynamic_category",
-                _("Recent"),
-                Gtk.Image.new_from_icon_name("document-open-recent-symbolic", Gtk.IconSize.MENU)
-            )
-        )
+        #@7oxicshadow disabled
+        #self.add(
+        #    SidebarRow(
+        #        "recent",
+        #        "dynamic_category",
+        #        _("Recent"),
+        #        Gtk.Image.new_from_icon_name("document-open-recent-symbolic", Gtk.IconSize.MENU)
+        #    )
+        #)
 
-        self.add(
-            SidebarRow(
-                "favorite",
-                "category",
-                _("Favorites"),
-                Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
-            )
-        )
+        #@7oxicshadow disabled
+        #self.add(
+        #    SidebarRow(
+        #        "favorite",
+        #        "category",
+        #        _("Favorites"),
+        #        Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
+        #    )
+        #)
 
-        self.running_row = SidebarRow(
-            "running",
-            "dynamic_category",
-            _("Running"),
-            Gtk.Image.new_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.MENU)
-        )
+        #@7oxicshadow disabled
+        #self.running_row = SidebarRow(
+        #    "running",
+        #    "dynamic_category",
+        #    _("Running"),
+        #    Gtk.Image.new_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.MENU)
+        #)
+        
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
-        self.add(self.running_row)
+        #self.add(self.running_row) #@7oxicshadow disabled
 
-        service_classes = services.get_enabled_services()
+        service_classes = [] #services.get_services() @7oxicshadow disable
         for service_name in service_classes:
             service = service_classes[service_name]()
             row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
@@ -377,7 +389,7 @@ class LutrisSidebar(Gtk.ListBox):
                 break
 
         self.show_all()
-        self.running_row.hide()
+        #self.running_row.hide() #7oxicshadow
 
     def _filter_func(self, row):
         if not row or not row.id or row.type in ("category", "dynamic_category", "service"):
@@ -389,16 +401,19 @@ class LutrisSidebar(Gtk.ListBox):
         return row.id in self.active_platforms
 
     def _header_func(self, row, before):
-        if not before:
-            row.set_header(self.row_headers["library"])
-        elif before.type in ("category", "dynamic_category") and row.type == "service":
-            row.set_header(self.row_headers["sources"])
-        elif before.type == "service" and row.type == "runner":
-            row.set_header(self.row_headers["runners"])
-        elif before.type == "runner" and row.type == "platform":
-            row.set_header(self.row_headers["platforms"])
-        else:
-            row.set_header(None)
+        if row.get_header():
+            return
+        #@7oxicshadow disabled
+        #if not before:
+        #    row.set_header(self.row_headers["library"])
+        #elif before.type in ("category", "dynamic_category") and row.type == "service":
+        #    row.set_header(self.row_headers["sources"])
+        #elif before.type == "service" and row.type == "runner":
+        #    row.set_header(self.row_headers["runners"])
+        #elif before.type == "runner" and row.type == "platform":
+        #    row.set_header(self.row_headers["platforms"])
+        #else:
+        #    row.set_header(None)
 
     def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
@@ -408,16 +423,17 @@ class LutrisSidebar(Gtk.ListBox):
 
     def on_game_start(self, _game):
         """Show the "running" section when a game start"""
-        self.running_row.show()
+        #self.running_row.show() #@7oxicshadow disabled
         return True
 
     def on_game_stop(self, _game):
         """Hide the "running" section when no games are running"""
-        if not self.application.running_games.get_n_items():
-            self.running_row.hide()
+        # @7oxicshadow disabled
+        #if not self.application.running_games.get_n_items():
+            #self.running_row.hide()
 
-            if self.get_selected_row() == self.running_row:
-                self.select_row(self.get_children()[0])
+            #if self.get_selected_row() == self.running_row:
+                #self.select_row(self.get_children()[0])
 
         return True
 

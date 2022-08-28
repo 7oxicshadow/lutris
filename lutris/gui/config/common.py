@@ -89,6 +89,9 @@ class GameDialogCommon(ModelessDialog):
         if self.game:
             info_box.pack_start(self._get_slug_box(), False, False, 6)
             info_box.pack_start(self._get_directory_box(), False, False, 6)
+            
+        #@7oxicshadow
+        info_box.pack_start(self._get_cfg_yml_box(), False, False, 6)  # cfg yml
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, _("Game info"))
@@ -109,8 +112,11 @@ class GameDialogCommon(ModelessDialog):
 
         label = Label(_("Identifier"))
         slug_box.pack_start(label, False, False, 0)
-
-        self.slug_entry = SlugEntry()
+        
+        #@7oxicshadow
+        #change the entry type so that it shows the full slug name
+        #self.slug_entry = SlugEntry()
+        self.slug_entry=Gtk.Entry()
         self.slug_entry.set_text(self.game.slug)
         self.slug_entry.set_sensitive(False)
         self.slug_entry.connect("activate", self.on_slug_entry_activate)
@@ -187,6 +193,21 @@ class GameDialogCommon(ModelessDialog):
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
         box.pack_start(self.year_entry, True, True, 0)
+
+        return box
+    
+    #@7oxicshadow
+    def _get_cfg_yml_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+
+        label = Label("CFG File (.yml)")
+        box.pack_start(label, False, False, 0)
+
+        self.cfg_yml = Gtk.Entry()
+        if self.lutris_config.game_config_id:
+            self.cfg_yml.set_text(self.lutris_config.game_config_id + '.yml')
+        self.cfg_yml.set_sensitive(False)
+        box.pack_start(self.cfg_yml, True, True, 0)
 
         return box
 

@@ -105,6 +105,8 @@ class GameActions:
             ("view", _("View on Lutris.net"), self.on_view_game),
             ("hide", _("Hide game from library"), self.on_hide_game),
             ("unhide", _("Unhide game from library"), self.on_unhide_game),
+            #@7oxicshadow
+            ("yt_search", _("Search Game On Youtube"), self.on_yt_search),
         ]
 
     def get_displayed_entries(self):
@@ -321,3 +323,14 @@ class GameActions:
             UninstallGameDialog(game_id=self.game.id, parent=self.window).run()
         else:
             RemoveGameDialog(game_id=self.game.id, parent=self.window).run()
+
+    #@7oxicshadow
+    def on_yt_search(self, _widget):
+        """Callback to open a game on lutris.net"""
+        localname = self.game.name
+        localname = localname.replace(" ","+")
+        localrunner = self.game.runner_name
+        localrunner = localrunner[1:]
+        localrunner = localrunner.replace("_","+")
+        #print(localrunner)
+        open_uri("https://www.youtube.com/results?search_query=%s+%s" % (localname, localrunner))
