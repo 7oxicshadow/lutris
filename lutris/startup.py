@@ -191,6 +191,9 @@ def init_lutris():
 
 
 def update_runtime(force=False):
+    # @7oxicshadow disable update runtime
+    return
+
     """Update runtime components"""
     runtime_call = update_cache.get_last_call("runtime")
     if force or not runtime_call or runtime_call > 3600 * 12:
